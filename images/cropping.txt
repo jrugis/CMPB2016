@@ -1,8 +1,0 @@
-
-ffmpeg -i seven_cells_smooth.png -vf "crop=1150:1080:400:60" seven_cells_smooth_crop.png
-ffmpeg -i three_cells_smooth.png -vf "crop=1150:1080:400:60" three_cells_smooth_crop.png
-
-ffmpeg -i seven_cells_rough.png -vf "crop=1150:1080:400:60" seven_cells_rough_crop.png
-ffmpeg -i three_cells_rough.png -vf "crop=1150:1080:400:60" three_cells_rough_crop.png
-
-
