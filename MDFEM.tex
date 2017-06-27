@@ -13,12 +13,12 @@
 \usepackage[skip=2pt]{caption}
 \usepackage[nottoc]{tocbibind}
 
-\setstretch{2.0}
+%\setstretch{2.0}
 
 \title{Multi-Domain Finite Element Meshing\\for Parotid Acinar Cell Modeling and Simulation}
-\author{John Rugis$^{a,b}$ \and Nathan Pages$^b$ \and James Sneyd$^b$ \and David Yule$^c$}
+\author{John Rugis$^{a,b}$ \and Nathan Pages$^b$ \and David Yule$^c$ \and James Sneyd$^b$}
 \date{%
-  $^a$corresponding author - email: j.rugis@auckland.ac.nz, phone: 649-373-7999\\%
+  $^a$corresponding author - email: j.rugis@auckland.ac.nz, phone: 649-923-2313\\%
   $^b$ Department of Mathematics,University of Auckland, Auckland, New Zealand\\%
   $^c$School of Medicine and Dentistry, University of Rochester, Rochester, NY, USA\\[2ex]%
   \today
@@ -28,26 +28,43 @@
 \maketitle
 
 \section*{Keywords}
-multi-domain meshing, volumetric mesh, finite element modeling, parotid acinar cells.\\
+multi-domain mesh refinement, surface curvature, volumetric mesh, finite element modeling, parotid acinar cells.\\
 
 \section*{Abstract}
 350 words maximum.\\
+Contribution: Multi-domain mesh surface smoothing using iterative coupled refinement.\\ 
+Refinement termination guided by reference target surface curvature.\\  
 
 \section{Introduction}
 The primary role of salivary gland acinar cells is to secrete saliva, the lack of which causes a host of severe medical difficulties \cite{fox1985,melvin1991}. Thus, an understanding of the mechanisms underlying saliva secretion are vital for the understanding of oral health.  The basic mechanism of saliva secretion is well understood \cite{nauntofte1992}, and has been previously modeled in detail \cite{sneyd2003}.\\
 
-However, although much is understood about saliva secretion, important questions, both experimental and theoretical, remain. From the theoretical point of view, one of the most interesting questions is how the structure of the acinar cells affects the properties of the Ca$^{2+}$ waves. Along these lines, we have previously reported our first simulation results obtained using an anatomically accurate three-dimensional parotid acinar cell model \cite{Sneyd2017383}. In that initial investigation, we modeled single, non-coupled cells. In this paper, we build on that work, extending our model to multiple (seven), coupled cells.\\   
+However, although much is understood about saliva secretion, important questions, both experimental and theoretical, remain. From the theoretical point of view, one of the most interesting questions is how the structure of the acinar cells affects the properties of the Ca$^{2+}$ waves. Along these lines, we have previously reported our first simulation results obtained using an anatomically accurate three-dimensional parotid acinar cell model \cite{Sneyd2017383}. In that initial investigation, we modeled single non-coupled cells. In this paper, we build on that work, extending our mesh model to multiple (seven), coupled cells.\\   
+
 MORE HERE? Why extend to coupled cells?\\
 
 \section{Design Considerations}
 We have been using a straightforward implementation of the Finite Element Method (FEM) \cite{gockenbach2006understanding,Hughes2000,gosz2005finite} for our three-dimentional parotid cell simulations and continue doing so in this latest work. In keeping with relatively common FEM practice, we model the surface of each cell with a triangle mesh, then fill-in the cell interiors with tetrahedrons, which results in a complete volumetric mesh for each cell. In the meshes that we developed for our prior work the cells did not physically contact each other i.e. there was a physical gap between the cells.\\
 
-We have recently extended our modeling to include interactions between adjacent cells and this imposed aditional demands on our mesh construction. With our new design, each cell now touches one or more other cells, sharing some portion of it's surface. We have chosen to model adjacent cell surfaces with \emph{conformal faces} in which triangle mesh faces are shared in common between adjacent cells. Note that this facilitates a fairly straightforward mathematical implementation of the interactions between cells. Because we still need to keep track of what's going on in each cell independently, the overall mesh is thought of as being \emph{multi-domain} (one domain for each cell). \\
+We have recently extended our mathematical modeling to include dynamic interactions between adjacent cells and this imposed additional demands on our mesh construction. With our new design, each cell now touches one or more other cells, sharing some portion of it's surface. We have chosen to model adjacent cell surfaces with \emph{conformal faces} in which numerous individual triangle mesh faces are shared in common between adjacent cells. Note that this facilitates a fairly straightforward mathematical implementation of the interactions between cells. Because we still need to keep track of what's going on in each cell independently, the overall mesh is thought of as being \emph{multi-domain} (one domain for each cell). \\
 
-As with our prior work, the source data for our acinar cell mesh construction consists of a calibrated confocal microscopy image stack.\\ 
-CITE YULE?\\
+As with our prior work, the source data for our acinar cell mesh construction consists of a calibrated confocal microscopy image stack. 
+We have 31 images at 1024 by 1024 pixels each with a resolution of approximately 0.069 micro-meters per pixel and a stack spacing of 0.80 micro-meters. \\ 
+
+MORE FROM YULE? CITE YULE?\\
+
+Note that, to maximize transparency and reproducibility, we favor the use of open-source software tools.\\
+Our work-flow combines existing tools, building on the work of others whenever possible, along with software tools and utilities that we develop ourselves when existing tools do not suffice.\\
 
 \section{Description of Method}
+
+We've designed an FEM mesh creation work-flow for our purposes that can overall be described as having three sequential steps:
+\begin{enumerate}
+\item Image segmentation
+\item Surface triangulation and refinement
+\item Volumetric meshing
+\end{enumerate}
+
+\subsection{Image segmentation}
 
 \begin{figure}[H]
 \begin{center}
@@ -59,6 +76,14 @@ CITE YULE?\\
 \label{fig:slice}
 \end{figure}
 
+By visual inspection, we identified and selected a distinct clump of seven cells within our source data image stack.  This clump spanned thirty of the images and covered a maximum of approximately one-quarter of each image. Segmentation was done manually by tracing the outline of each cell in each image with a distinct color, followed by matched color flood-fill. One-quarter of original image number 16, along with it's segmentation, is shown in Figure \ref{fig:slice}.\\
+
+Note that, with our image stack the ratio of stack spacing to pixel resolution is 11.6 being (0.069/0.80). To bring this closer to a ratio of one-to-one, we reduced the X and Y dimensions in the segmented image stack by a factor of eight using nearest neighbor interpolation (to retain the distinct coloring of each cell) resulting in a pixel spacing of approximately 0.55 micro-meters.  The reduceded images were then combined into a single X-Y-Z TIFF stack for convenience.\\
+
+\subsubsection{Curvature}
+
+We also wanted to extract some information from the segmented image stack about the smoothness of the surface of each cell. We chose line curvature as a shape charateristic indicator. Both line and surface curvature have been used successfully in other work to characterise the surface of objects \cite{Rugis_2005_SCMMD, Rugis_2006_SISCE}. Later in this paper we will describe how we used this characteristic line curvature information as guidance in a cell surface curvature smoothing process.\\
+
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=0.55\textwidth]{images/outline.pdf}
@@ -68,14 +93,48 @@ CITE YULE?\\
 \label{fig:slice_outline}
 \end{figure}
 
+We went back to the 1024 by 1024 segmented images and extracted pixels associated with the closed curve boundary outline for each cell in each  image, then selected the outline containing the maximum number of pixels for each cell as being the closest to a ``great arc" slice through that cell. (This great arc criterion was based on the fact that only the curvature associated with a great arc of of sphere is equal to the sphere mean surface curvature.)\\
+
+Next, considering that fact that image pixels are all located on a regular retangular grid (not very useful for calculating actual local curvature!), a smoothed version of each cell outline was created using a 2D Savitzky-Golay (least-squares) fitting filter \cite{doi:10.1021/ac60214a047}. See Figure \ref{fig:slice_outline} for a sample cell outline showing the original pixel locations as well as the smoothing process result.\\
+
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{images/cell1_curv.pdf}
-\includegraphics[width=0.4\textwidth]{images/cell2_curv.pdf}
+\includegraphics[width=0.4\textwidth]{images/cell4_curv.pdf}
 \end{center}
 \caption{Reference curvature histograms for two of the cells.}
 \label{fig:ref_histogram}
 \end{figure}
+
+Distribution of curvature at every outline point for each of the seven cells.\\
+
+\begin{table}[H]
+\begin{center}
+\footnotesize
+\begin{tabular}{|c|c|}
+\hline
+cell &curvature std\\
+\hline
+1 &0.2305\\
+2 &0.3567\\
+3 & 0.3864\\
+4 &0.2832\\
+5 &0.6868\\
+6 &0.3627\\
+7 & 0.4226\\
+\hline
+\end{tabular}
+\end{center}
+\caption{The standard deviation of the curvature values (in $\mu \text{m}^{-1}$) for each cell obtained from the microscopy image stack.}
+\label{tab:ref_curv}
+\end{table}
+
+Standard deviation as a single, although imperfect, metric that characterizes the surface smoothness, and in that sense, shape, of each cell.
+Standard deviation is only an unambiguous characterization of a normal distribution.\\ 
+
+\subsection{Surface triangulation and refinement}
+
+\subsubsection{Surface triangulation}
 
 \begin{figure}[H]
 \begin{center}
@@ -84,6 +143,10 @@ CITE YULE?\\
 \caption{Rough multi-domain surface mesh: all seven cells (left) and three exposed cells (right).}
 \label{fig:rough}
 \end{figure}
+
+CGAL\\
+
+\subsubsection{Surface smoothing refinement}
 
 \begin{figure}[H]
 %no smoothing 
@@ -95,6 +158,11 @@ CITE YULE?\\
 \label{fig:cell_morph}
 \end{figure}
 
+Smooth the cell surface to minimize surface area while maintaining cell volume.\\
+Iterative smoothing process.\\
+With and without coupling.\\
+Restore volume.\\
+
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=0.45\textwidth]{images/cell_surf_100.pdf}
@@ -104,22 +172,33 @@ CITE YULE?\\
 \label{fig:100_iterations}
 \end{figure}
 
+When to stop?\\
+When target surface curvature is achieved.\\
+
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=0.45\textwidth]{images/cell_curv_std.pdf}
 \end{center}
-\caption{Half of the cells hit the target curvature standard deviation ratio of one after ten iterations.}
+\caption{All of the cells hit the target curvature standard deviation ratio of one after nine iterations.}
 \label{fig:curv_std}
 \end{figure}
+
+Stop after at least half of the smoothed cells drop below target curvature.\\
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{images/cell1_curv_morph.pdf}
-\includegraphics[width=0.4\textwidth]{images/cell2_curv_morph.pdf}
+\includegraphics[width=0.4\textwidth]{images/cell4_curv_morph.pdf}
 \end{center}
 \caption{Initial surface curvature distribution in brown and smoothed surface curvature in blue.}
 \label{fig:morph_histogram}
 \end{figure}
+
+Initial and final surface curvature distribution for two cells.
+ 
+\subsection{Volumetric meshing}
+
+GMSH.\\
 
 \section{Results}
 
@@ -131,9 +210,19 @@ CITE YULE?\\
 \label{fig:smooth}
 \end{figure}
 
+Simulation results from NATHAN.\\
+
 \section{Discussion}
 
+Challenge of physically accurate mesh model generation given incomplete data.\\
+Mesh design constrained by both the practical requirements of finite element modeling and the simplification assumptions made in the mathematical model.\\ 
+
 \section{Conclusion and Future Plans}
+
+Multi-domain conformal mesh for FEM simulation.\\
+Confirmed with initial test runs using our calcium dynamics model.\\
+Use the meshes in simulations with an updated mathematical model that includes interactions between cells.\\
+
 
 \section{Acknowledgements}
 This work was supported by the National Institutes of Health grant number 5R01DE019245 and by a grant from New Zealand eScience Infrastructure (NeSI).\\
@@ -145,27 +234,6 @@ This work was supported by the National Institutes of Health grant number 5R01DE
 \appendix
 
 \section{Numerical Data}
-
-\begin{table}[H]
-\begin{center}
-\footnotesize
-\begin{tabular}{|c|c|}
-\hline
-cell &curvature std\\
-\hline
-1 &0.0412\\
-2 &0.0538\\
-3 & 0.0432\\
-4 &0.0491\\
-5 &0.0555\\
-6 &0.0602\\
-7 &0.0544\\
-\hline
-\end{tabular}
-\end{center}
-\caption{The standard deviation of the curvature values (in $\mu \text{m}^{-1}$) for each cell obtained from the microscopy image stack.}
-\label{tab:ref_curv}
-\end{table}
 
 \begin{table}[H]
 \begin{center}
@@ -184,7 +252,7 @@ cell & 0 &1 &2 &3 &4 &5 &6 &7 &8 &9 &10\\
 \hline
 \end{tabular}
 \end{center}
-\caption{The evolution of standard deviation of mean surface curvature for the seven cells (in $\mu \text{m}^{-1}$)  at each coupled smoothing iteration.}
+\caption{The evolution of standard deviation of mean surface curvature for the seven cells (in $\mu \text{m}^{-1}$)  after each of ten coupled smoothing iterations.}
 \label{tab:curv}
 \end{table}
 
@@ -229,5 +297,16 @@ cell & 0 &1 &2 &3 &4 &5 &6 &7 &8 &9 &10\\
 \caption{The evolution of volume for the seven cells (in $\mu \text{m}^3$)  at each coupled smoothing iteration.}
 \label{tab:vol}
 \end{table}
+
+\section{Software tools}
+CGAL \\
+GitHub \\
+GMSH \\
+ImageMagick \\
+MatLab \\
+Photoshop \\
+Python \\
+
+cellmesh.git\\
 
 \end{document}
