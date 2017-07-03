@@ -28,12 +28,13 @@
 \maketitle
 
 \section*{Keywords}
-multi-domain mesh refinement, surface curvature, volumetric mesh, finite element modeling, parotid acinar cells.\\
+multi-domain mesh, mesh refinement, surface curvature, finite element modeling, parotid acinar cells\\
 
 \section*{Abstract}
 350 words maximum.\\
 Contribution: Multi-domain mesh surface smoothing using iterative coupled refinement.\\ 
-Refinement termination guided by reference target surface curvature.\\  
+Termination of refinement guided by reference target surface curvature.\\
+FINISH THIS WHEN EVERYTHING ELSE IS DONE.\\  
 
 \section{Introduction}
 The primary role of salivary gland acinar cells is to secrete saliva, the lack of which causes a host of severe medical difficulties \cite{fox1985,melvin1991}. Thus, an understanding of the mechanisms underlying saliva secretion are vital for the understanding of oral health.  The basic mechanism of saliva secretion is well understood \cite{nauntofte1992}, and has been previously modeled in detail \cite{sneyd2003}.\\
@@ -43,17 +44,15 @@ However, although much is understood about saliva secretion, important questions
 MORE HERE? Why extend to coupled cells?\\
 
 \section{Design Considerations}
-We have been using a straightforward implementation of the Finite Element Method (FEM) \cite{gockenbach2006understanding,Hughes2000,gosz2005finite} for our three-dimentional parotid cell simulations and continue doing so in this latest work. In keeping with relatively common FEM practice, we model the surface of each cell with a triangle mesh, then fill-in the cell interiors with tetrahedrons, which results in a complete volumetric mesh for each cell. In the meshes that we developed for our prior work the cells did not physically contact each other i.e. there was a physical gap between the cells.\\
+We have been using a straightforward implementation of the Finite Element Method (FEM) \cite{gockenbach2006understanding,Hughes2000,gosz2005finite} for our three-dimentional parotid cell simulations and continue doing so in this latest work. In keeping with relatively common FEM practice, we model the surface of each cell with a triangle mesh, then fill-in the cell interiors with tetrahedrons which results in a complete volumetric mesh for each cell. In the meshes that we developed for our prior work the cells did not physically contact each other i.e. there was a physical gap between the cells.\\
 
-We have recently extended our mathematical modeling to include dynamic interactions between adjacent cells and this imposed additional demands on our mesh construction. With our new design, each cell now touches one or more other cells, sharing some portion of it's surface. We have chosen to model adjacent cell surfaces with \emph{conformal faces} in which numerous individual triangle mesh faces are shared in common between adjacent cells. Note that this facilitates a fairly straightforward mathematical implementation of the interactions between cells. Because we still need to keep track of what's going on in each cell independently, the overall mesh is thought of as being \emph{multi-domain} (one domain for each cell). \\
+We have recently extended our mathematical modeling to include dynamic interactions between adjacent cells and this imposed additional demands on our mesh construction. With our new design, each cell now touches one or more other cells, sharing some portion of it's surface. We have chosen to model adjacent cell surfaces with \emph{conformal faces} in which numerous individual triangle mesh faces are shared in common between adjacent cells. Note that this facilitates a fairly straightforward mathematical implementation of the interactions between cells. The final complete mesh is said to be \emph{multi-domain} (one domain for each cell) in that we still subsequently keep track of what's going on within the physical confines of each cell independently. \\
 
-As with our prior work, the source data for our acinar cell mesh construction consists of a calibrated confocal microscopy image stack. 
-We have 31 images at 1024 by 1024 pixels each with a resolution of approximately 0.069 micro-meters per pixel and a stack spacing of 0.80 micro-meters. \\ 
+As with our prior work, the source data for our acinar cell mesh construction consists of a calibrated confocal microscopy image stack. We have 31 images at 1024 by 1024 pixels each with a resolution of approximately 0.069 micro-meters per pixel and a stack spacing of 0.80 micro-meters. \\ 
 
 MORE FROM YULE? CITE YULE?\\
 
-Note that, to maximize transparency and reproducibility, we favor the use of open-source software tools.\\
-Our work-flow combines existing tools, building on the work of others whenever possible, along with software tools and utilities that we develop ourselves when existing tools do not suffice.\\
+Note that, to maximize the transparency and reproducibility of our computaional work, we favor the use of open-source software tools. Our work-flow combines existing tools (building on the work of others whenever possible) along with software tools and utilities that we develop ourselves when existing tools do not suffice.\\
 
 \section{Description of Method}
 
@@ -76,24 +75,24 @@ We've designed an FEM mesh creation work-flow for our purposes that can overall 
 \label{fig:slice}
 \end{figure}
 
-By visual inspection, we identified and selected a distinct clump of seven cells within our source data image stack.  This clump spanned thirty of the images and covered a maximum of approximately one-quarter of each image. Segmentation was done manually by tracing the outline of each cell in each image with a distinct color, followed by matched color flood-fill. One-quarter of original image number 16, along with it's segmentation, is shown in Figure \ref{fig:slice}.\\
+By visual inspection we identified and selected a contiguous clump of seven cells within our source data image stack.  This clump spanned thirty of the images and covered a maximum of approximately one-quarter of each image. Segmentation was done manually by tracing the outline of each cell in each image with a distinct color, followed by matched color flood-fill. One-quarter of original image number 16, along with it's segmentation, is shown in Figure \ref{fig:slice}.\\
 
-Note that, with our image stack the ratio of stack spacing to pixel resolution is 11.6 being (0.069/0.80). To bring this closer to a ratio of one-to-one, we reduced the X and Y dimensions in the segmented image stack by a factor of eight using nearest neighbor interpolation (to retain the distinct coloring of each cell) resulting in a pixel spacing of approximately 0.55 micro-meters.  The reduceded images were then combined into a single X-Y-Z TIFF stack for convenience.\\
+Note that with our image stack the ratio of stack spacing to pixel resolution is 11.6 (being 0.069/0.80). To bring this closer to a ratio of one-to-one, we reduced the X and Y dimensions in the segmented image stack by a factor of four using nearest neighbor interpolation (to retain the distinct coloring of each cell) resulting in a pixel spacing of approximately 0.28 micro-meters.  The reduceded images were then combined into a single XYZ TIFF stack for convenience.\\
 
 \subsubsection{Curvature}
 
-We also wanted to extract some information from the segmented image stack about the smoothness of the surface of each cell. We chose line curvature as a shape charateristic indicator. Both line and surface curvature have been used successfully in other work to characterise the surface of objects \cite{Rugis_2005_SCMMD, Rugis_2006_SISCE}. Later in this paper we will describe how we used this characteristic line curvature information as guidance in a cell surface curvature smoothing process.\\
+We also wanted to extract some information from the segmented image stack about the smoothness of the surface of each cell. We chose line curvature as a surface smoothness charateristic indicator. Both line and surface curvature have been used successfully  by one of us (Rugis) in other work to characterise the surface of objects \cite{Rugis_2005_SCMMD, Rugis_2006_SRMRSD, Rugis_2006_SISCE}. (A descriptin of how we used characteristic line curvature information as a reference for guidance in a cell surface curvature smoothing process in this current work with be given in following sections.)\\
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=0.55\textwidth]{images/outline.pdf}
+\includegraphics[width=0.5\textwidth]{images/outline.pdf}
 \end{center}
 \vspace{-5mm}
 \caption{A sample segmentation pixel outline in green with smoothed node points in red.}
 \label{fig:slice_outline}
 \end{figure}
 
-We went back to the 1024 by 1024 segmented images and extracted pixels associated with the closed curve boundary outline for each cell in each  image, then selected the outline containing the maximum number of pixels for each cell as being the closest to a ``great arc" slice through that cell. (This great arc criterion was based on the fact that only the curvature associated with a great arc of of sphere is equal to the sphere mean surface curvature.)\\
+For curvature calculation purposes, we went back to the 1024 by 1024 segmented images and extracted pixels associated with the closed curve boundary outline for each cell in each  image, then selected the outline containing the maximum number of pixels for each cell as being the closest to a ``great arc" slice through that cell. (This great arc criterion was based on the fact that only the curvature associated with a great arc of a sphere is equal to the sphere mean surface curvature.)\\
 
 Next, considering that fact that image pixels are all located on a regular retangular grid (not very useful for calculating actual local curvature!), a smoothed version of each cell outline was created using a 2D Savitzky-Golay (least-squares) fitting filter \cite{doi:10.1021/ac60214a047}. See Figure \ref{fig:slice_outline} for a sample cell outline showing the original pixel locations as well as the smoothing process result.\\
 
@@ -102,18 +101,18 @@ Next, considering that fact that image pixels are all located on a regular retan
 \includegraphics[width=0.4\textwidth]{images/cell1_curv.pdf}
 \includegraphics[width=0.4\textwidth]{images/cell4_curv.pdf}
 \end{center}
-\caption{Reference curvature histograms for two of the cells.}
+\caption{Reference curvature histograms for two of the cells (in $\mu \text{m}^{-1}$). The distributions are ``near normal".}
 \label{fig:ref_histogram}
 \end{figure}
 
-Distribution of curvature at every outline point for each of the seven cells.\\
+Planar line curvature was calculated at each point on the smoothed outlines using a local estimator as given in \cite{Rugis_2008_DSC}. We used weighted histograms to visualise the curvature distribution for each of the seven cells. Two of the histograms are shown in Figure \ref{fig:ref_histogram}. Note that in both cases the curvature distribution is biasing towards the positive, as would be expected with any closed curve from the outside using the convention that positive curvature is associated with convex line segments.\\
 
 \begin{table}[H]
 \begin{center}
 \footnotesize
 \begin{tabular}{|c|c|}
 \hline
-cell &curvature std\\
+cell &curvature std ($\mu \text{m}^{-1}$) \\
 \hline
 1 &0.2305\\
 2 &0.3567\\
@@ -125,16 +124,19 @@ cell &curvature std\\
 \hline
 \end{tabular}
 \end{center}
-\caption{The standard deviation of the curvature values (in $\mu \text{m}^{-1}$) for each cell obtained from the microscopy image stack.}
+\caption{The standard deviation of curvature values for seven cells extracted from the microscopy image stack.}
 \label{tab:ref_curv}
 \end{table}
 
-Standard deviation as a single, although imperfect, metric that characterizes the surface smoothness, and in that sense, shape, of each cell.
-Standard deviation is only an unambiguous characterization of a normal distribution.\\ 
+To simplify our characterisation of cell surface shape we chose the weighted standard deviation of the curvatures for each cell as a single (although imperfect\footnote{Standard deviation is only an unambiguous characterisation given normally distributed data.}) measure that characterizes the surface smoothness and, in that sense, the shape, of each cell. The weighted curvature standard deviation for each of the seven cells is shown in Table \ref{tab:ref_curv}.\\ 
 
 \subsection{Surface triangulation and refinement}
 
+For the surface triangulation and refinement process we started with the reduced XYZ TIFF image stack described in the previous section. We now thought of this reduced stack as essentially a 256x256x31 solid voxel block within which each voxel is labelled with a color associated with the cell that it belongs to. 
+
 \subsubsection{Surface triangulation}
+
+Significant prior work in extracting triangle surface meshes from labelled voxel blocks has been done by Boltcheva et al.\cite{boltcheva:inria-00420228} and we used their technique. Sample computer code implementing this technique was found found on the Computational Geometry Algorithms Library (CGAL) web site\footnote{www.cgal.org}. Note that we needed to convert our voxel block data to Inria (.inr) format\footnote{www.inria.fr} before passing it to the CGAL code.
 
 \begin{figure}[H]
 \begin{center}
@@ -144,9 +146,27 @@ Standard deviation is only an unambiguous characterization of a normal distribut
 \label{fig:rough}
 \end{figure}
 
-CGAL\\
+The output from the CGAL code was a multi-domain triangle surface mesh, as shown in Figure \ref{fig:rough}, where each of the cell faces are labelled in color by cell . However, given our data and subsequent intentions, there are two problems with this mesh: there are ``steps" as a result of the relatively limited stack resolution and, on close inspection, the surfaces are rather rough (as can be seen more clearly in the cell labelled ``no smoothing" in the top of Figure \ref{fig:cell_morph}). This lack of surface smoothness has the net effect of increasing the surface area of each cell to a value larger than what it is in the real cells.\\
 
-\subsubsection{Surface smoothing refinement}
+\subsubsection{Surface smoothing}
+
+To reduce the surface area closer to what it should be, we created a constrained surface smoothing process which is the primary contribution of this work. Note that the smoothing process should: 1) minimise the surface area of each cell while 2) maintaining the volume of each cell and 3) keeping the shared conformal faces between cells as being shared.\\
+
+A psuedo-code outline for our iterative smoothing process is as follows:
+\begin{verbatim}
+Main Loop
+{
+    Cell Loop (for each cell)
+    {
+        Smooth the cell.
+        Restore volume of cell.
+        Calculate the cell surface curvature.
+    }
+    Have all cells reached the target curvature?
+        Yes: DONE, exit loop.
+        No: Go back to top of Main Loop.  
+}
+\end{verbatim}
 
 \begin{figure}[H]
 %no smoothing 
@@ -158,22 +178,23 @@ CGAL\\
 \label{fig:cell_morph}
 \end{figure}
 
-Smooth the cell surface to minimize surface area while maintaining cell volume.\\
-Iterative smoothing process.\\
-With and without coupling.\\
-Restore volume.\\
+For each cell we used the curvature-flow based smoothing operation described in \cite{Desbrun:1999:IFI:311535.311576}. Note that the cell smoothing process works by slightly moving the position of the surface mesh verticies\footnote{Also, no new faces are added, nor are any faces removed.} for each cell in turn. Therefore, verticies associated with shared faces get moved twice in each pass through the Main Loop, i.e. once for each cell in every adjacent pair of cells. In this sense, the smoothing is a coupled process. With our approach, if the verticies associated with shared faces where allowed to split from each other, the result would be non-coupled as shown in the middle row of Figure \ref{fig:cell_morph}, which is not what we want.\\
+
+Smoothing results after each of each of 6, 16, 40 and 100 iterations are rendered as images in Figure \ref{fig:cell_morph}.
+The question remains: After how many iterations should we stop? This is where we found the weighted curvature standard deviation values from Table \ref{tab:ref_curv} useful as will be described in the next section.\\
+
+\subsubsection{Iteration termination}
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=0.45\textwidth]{images/cell_surf_100.pdf}
 \includegraphics[width=0.45\textwidth]{images/cell_vol_100.pdf}
 \end{center}
-\caption{Cell surface area and volume evolution over one hundred coupled smoothing interations.}
+\caption{Cell surface area and volume evolution over one hundred coupled smoothing interations. (Note the much smaller scale range with the plot on the right.)}
 \label{fig:100_iterations}
 \end{figure}
 
-When to stop?\\
-When target surface curvature is achieved.\\
+Recall from the previous section that reducing cell surface area while at the same time maintaining cell volume was an important consideration. The smoothing step in our process has the effect of reducing surface area as shown for one hundred iterations in the left-hand side of Figure \ref{fig:100_iterations}. Cell volume is explicitly restored in our process, so doesn't vary much as can be seen in the right-hand side of Figure \ref{fig:100_iterations}. (The raw data for these plots is given in Appendix Tables \ref{tab:surf} and \ref{tab:vol}.) These plots indicate that we've met the surface are and volume consideration after ten or so iterations, but offer no further guidance as to when to terminate the iterative process. For this we looked to surface curvature.\\
 
 \begin{figure}[H]
 \begin{center}
@@ -183,7 +204,9 @@ When target surface curvature is achieved.\\
 \label{fig:curv_std}
 \end{figure}
 
-Stop after at least half of the smoothed cells drop below target curvature.\\
+For each cell, in every iteration, we calculated the 2D surface curvature at every mesh vertex using the (local) surface curvature estimator given in \cite{Rugis_2008_DSC}. And for each cell, in every iteration, we calculated the weighted standard deviation of those curvatures to get a single smoothness characteristic value. We then compared this value to the associated target standard deviation in Table \ref{tab:ref_curv} and expressed it as a ratio as shown in Figure \ref{fig:curv_std}. (The raw data for this plot is given in Appendix Table \ref{tab:curv}.)\\
+
+With this information in hand, we decided to terminate the iterative process and accept the results after ten iterations by which time all of the cells had more than dropped below their target characteristic curvature.\\
 
 \begin{figure}[H]
 \begin{center}
@@ -194,13 +217,9 @@ Stop after at least half of the smoothed cells drop below target curvature.\\
 \label{fig:morph_histogram}
 \end{figure}
 
-Initial and final surface curvature distribution for two cells.
- 
+For further insight and confirmation of our results we produced initial and final iteration weighted surface curvature histograms for each of the seven cells. Histograms for two of the cells are shown in Figure \ref{fig:morph_histogram}. Note that in all cases, as expected, the initial curvature spread was relatively wide and the final curvature distribution narrower, peaking just to the right (positive) side of zero. The final curvature histograms compared favourably to those associated with the image stacks including those shown earlier in Figure \ref{fig:ref_histogram}.\\
+
 \subsection{Volumetric meshing}
-
-GMSH.\\
-
-\section{Results}
 
 \begin{figure}[H]
 \begin{center}
@@ -210,22 +229,30 @@ GMSH.\\
 \label{fig:smooth}
 \end{figure}
 
-Simulation results from NATHAN.\\
+GMSH.\\
+
+\section{Results}
+
+SOME SIMULATION RESULTS FROM NATHAN GO HERE.\\
 
 \section{Discussion}
 
 Challenge of physically accurate mesh model generation given incomplete data.\\
 Mesh design constrained by both the practical requirements of finite element modeling and the simplification assumptions made in the mathematical model.\\ 
+In our application, we believe that there is no objective collection of criteria on which to optimally decide precisely when to terminate the iterative smoothing process. However, we do believe that stopping after say $10\pm2$ iterations is well justified as described earlier in this paper.\\
+ADDITIONAL DISCUSSION FROM JAMES OR NATHAN?\\
 
 \section{Conclusion and Future Plans}
 
-Multi-domain conformal mesh for FEM simulation.\\
-Confirmed with initial test runs using our calcium dynamics model.\\
-Use the meshes in simulations with an updated mathematical model that includes interactions between cells.\\
+Produced multi-domain conformal mesh for FEM simulation.
+Confirmed by using the meshes in initial simulations with an updated mathematical model that includes interactions between cells.\\
 
+Future plans include multiple parameter sweep simulation runs to fully explore our new coupled cell model.\\
+ANY MORE TO GO HERE?\\
 
 \section{Acknowledgements}
 This work was supported by the National Institutes of Health grant number 5R01DE019245 and by a grant from New Zealand eScience Infrastructure (NeSI).\\
+ANY MORE?\\
 
 \bibliographystyle{alpha}
 \bibliography{references}
@@ -242,13 +269,14 @@ This work was supported by the National Institutes of Health grant number 5R01DE
 \hline
 cell & 0 &1 &2 &3 &4 &5 &6 &7 &8 &9 &10\\
 \hline
-1 &0.1374 &0.0968 &0.0723 &0.0607 &0.0541 &0.0500 &0.0472 &0.0453 &0.0439 &0.0428 &0.0411\\
-2 &0.1464 &0.1003 &0.0771 &0.0679 &0.0631 &0.0604 &0.0587 &0.0574 &0.0566 &0.0560 &0.0555\\
-3 &0.1315 &0.0901 &0.0694 &0.0591 &0.0531 &0.0493 &0.0467 &0.0447 &0.0432 &0.0420 &0.0411\\
-4 &0.1418 &0.0957 &0.0736 &0.0634 &0.0579 &0.0546 &0.0524 &0.0508 &0.0496 &0.0487 &0.0480\\
-5 &0.1549 &0.1037 &0.0808 &0.0714 &0.0667 &0.0640 &0.0623 &0.0611 &0.0602 &0.0596 &0.0591\\
-6 &0.1407 &0.0939 &0.0713 &0.0610 &0.0552 &0.0516 &0.0492 &0.0475 &0.0461 &0.0451 &0.0443\\
-7 &0.1355 &0.0901 &0.0712 &0.0617 &0.0564 &0.0531 &0.0509 &0.0494 &0.0483 &0.0475 &0.0468\\
+
+1 &0.9837 &0.7466 &0.5595 &0.4472 &0.3726 &0.3201 &0.2814 &0.2520 &0.2289 &0.2105 &0.1955\\
+2 &1.0143 &0.7216 &0.5146 &0.4141 &0.3559 &0.3177 &0.2906 &0.2702 &0.2543 &0.2414 &0.2309\\
+3 &1.0620 &0.7552 &0.5703 &0.4641 &0.3963 &0.3501 &0.3169 &0.2921 &0.2727 &0.2571 &0.2443\\
+4 &1.0402 &0.7387 &0.5579 &0.4552 &0.3903 &0.3459 &0.3135 &0.2888 &0.2691 &0.2529 &0.2394\\
+5 &1.1262 &0.8054 &0.5683 &0.4418 &0.3649 &0.3139 &0.2782 &0.2524 &0.2331 &0.2184 &0.2070\\
+6 &1.0739 &0.7598 &0.5541 &0.4453 &0.3766 &0.3286 &0.2927 &0.2649 &0.2428 &0.2249 &0.2102\\
+7 &1.0451 &0.7137 &0.5396 &0.4363 &0.3692 &0.3226 &0.2885 &0.2626 &0.2422 &0.2259 &0.2126\\
 \hline
 \end{tabular}
 \end{center}
