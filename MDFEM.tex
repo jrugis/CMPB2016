@@ -34,23 +34,32 @@ multi-domain mesh, mesh refinement, surface curvature, finite element modeling, 
 350 words maximum.\\
 Contribution: Multi-domain mesh surface smoothing using iterative coupled refinement.\\ 
 Termination of refinement guided by reference target surface curvature.\\
-COMPLETE THIS WHEN EVERYTHING ELSE IS DONE.\\  
+COMPLETE THIS WHEN EVERYTHING ELSE IS DONE.\\
 
 \section{Introduction}
-The primary role of salivary gland acinar cells is to secrete saliva, the lack of which causes a host of severe medical difficulties \cite{fox1985,melvin1991}. Thus, an understanding of the mechanisms underlying saliva secretion are vital for the understanding of oral health.  The basic mechanism of saliva secretion is well understood \cite{nauntofte1992}, and has been previously modeled in detail \cite{sneyd2003}.\\
+The primary role of salivary gland acinar cells is to secrete saliva, the lack of which causes a host of severe medical difficulties \cite{fox1985,melvin1991}. Thus, an understanding of the mechanisms underlying saliva secretion are vital for the understanding of oral health.  The basic mechanism of saliva secretion is well understood \cite{nauntofte1992}, and has been previously modeled in detail.
+In brief, agonist stimulation (by hormones or neurotransmitters) leads to the production of the second messenger, inositol trisphosphate (IP3), which then releases Ca$^{2+}$ from the endoplasmic reticulum (ER) through IP3 receptors (IPR) which are also Ca$^{2+}$ channels. Ca$^{2+}$ released from the ER is then pumped back into the ER by Ca$^{2+}$ ATPase pumps (SERCA) or removed from the cell by plasma membrane ATPases.\\
 
-However, although much is understood about saliva secretion, important questions, both experimental and theoretical, remain. From the theoretical point of view, one of the most interesting questions is how the structure of the acinar cells affects the properties of the Ca$^{2+}$ waves. Along these lines, we have previously reported our first simulation results obtained using an anatomically accurate three-dimensional parotid acinar cell model \cite{Sneyd2017383}. In that initial investigation, we modeled single non-coupled cells. In this paper, we build on that work, extending our mesh model to multiple (seven), coupled cells.\\   
+Feedback between Ca$^{2+}$ and IPR, as well as between Ca$^{2+}$ and IP3 production and degradation, leads to repetitive cycles of Ca$^{2+}$ release and reuptake, and thus to periodic Ca$^{2+}$ spikes. Stochastic properties of the IPR are also closely involved in determining the interspike interval.
+These Ca$^{2+}$ spikes activate Cl- channels (in the apical region of the acinar cell) and K+ channels (in the basal region of the cell), leading to flow of Cl$^{-}$- and K$^{+}$ out of the cell, but in different directions. These ionic flows, in turn, set up ionic gradients that drive the flow of water through the cell, via osmosis.\\
 
-MORE HERE? Why extend to coupled cells?\\
+A critical feature of salivary gland acinar cells is their spatial organisation \cite{Sneyd2017383}. The apical and basal regions of the cell have different sets of ion channels, and open into different environments. These spatial heterogeneities are the reason that salivary acinar cells can transport water (i.e., produce saliva) in a specified direction.
+Although much is understood about saliva secretion, important questions, both experimental and theoretical, remain. From the theoretical point of view, one of the most interesting questions is how the structure of the acinar cells affects the properties of the Ca$^{2+}$ spikes. IPR are not distributed uniformly through the cell, but are concentrated in the apical region. Furthermore, IP3 is produced only at the basal membrane. There is thus a significant spatial separation between the various components of the feedback system that governs oscillatory Ca2+ spiking. How these spatial heterogeneities might affect Ca2+ dynamics is one of the most important current theoretical questions in the study of how Ca2+ spiking controls saliva secretion.\\
 
-\section{Design Considerations}
+We have previously studied the effects of spatial heterogeneity in a single parotid acinar cell, with a structure that is determined from experimental measurements \cite{sneyd2003}. However, acinar cells do not sit in isolation. Each cell is situated in group, called an acinus, that resembles a bunch of grapes. Inside each acinus, each parotid cell is coupled to neighbouring acinar cells by gap junctions, and all secrete water into a common lumen that has a highly branched structure. This means that the properties of the Ca2+ spikes cannot be properly determined by the consideration of an isolated cell. Furthermore, the rate at which an acinus secretes water (into a common lumen) may be influenced by the structure of the lumen, which determines the network structure of the acinus, as well as which cells lie `downstream' of other cells.\\
+
+For a proper understanding of saliva secretion, and how it is affected by spatial heterogeneities, all these complications must be taken into account. Thus, here we extend our initial single-cell model to a multicellular model of an acinus of seven cells (the smallest acinus for which we have the detailed anatomical structure).
+We focus here on the technical details of mesh construction, leaving details of the scientific results for a subsequent publication.\\
+
+\section{Design Considerations} \label{DesignConsiderations}
 We have been using a straightforward implementation of the Finite Element Method (FEM) \cite{gockenbach2006understanding,Hughes2000,gosz2005finite} for our three-dimensional parotid cell simulations and continue doing so in this latest work. In keeping with relatively common FEM practice, we model the surface of each cell with a triangle mesh, then fill-in the cell interiors with tetrahedrons which results in a complete volumetric mesh for each cell. With the meshes that we developed for our prior work, the cells did not physically contact each other i.e. there was a physical gap between the cells.\\
 
-We have recently extended our mathematical modeling to include dynamic interactions between adjacent cells and this imposed additional demands on our mesh construction. With our new design, each cell now touches one or more other cells, sharing some portion of it's surface. We have chosen to model adjacent cell surfaces with \emph{conformal faces} in which numerous individual triangle mesh faces are shared in common between adjacent cells. Note that this facilitates a fairly straightforward mathematical implementation of the interactions between cells. The final complete mesh is said to be \emph{multi-domain} (one domain for each cell) in that we still subsequently keep track of what's going on within the physical confines of each cell independently. \\
+We have recently extended our mathematical modeling to include dynamic interactions between adjacent cells and this imposed additional demands on our mesh construction. With our new design, each cell now touches one or more other cells, sharing some portion of it's surface. We have chosen to model adjacent cell surfaces with \emph{conformal faces} in which numerous individual triangle mesh faces are shared in common between adjacent cells. Note that this facilitates a fairly straightforward mathematical implementation of the interactions between cells. The final complete mesh is said to be \emph{multi-domain} (one domain for each cell) in that we still subsequently keep track of what's going on within the physical confines of each cell independently.\\
 
-As with our prior work, the source data for our acinar cell mesh construction consists of a calibrated confocal microscopy image stack. We have 31 images at 1024 by 1024 pixels each with a resolution of approximately 0.069 micro-meters per pixel and a stack spacing of 0.80 micro-meters. \\ 
+As with our prior work, the source data for our acinar cell mesh construction consists of a calibrated confocal microscopy image stack. We have 31 images at 1024 by 1024 pixels each with a resolution of approximately 0.069 micro-meters per pixel and a stack spacing of 0.80 micro-meters. The lower resolution of the stack spacing means that there may be small scale cell surface detail captured in the image planes that has been missed along the stack acquistion axis, and because of this, the source data can be said to be `incomplete'.  As will be described later in this paper, we chose a modeling resolution of approximately 0.2 micro-meters i.e. approximately three times lower than the pixel resolution but four times higher than the stack resolution.\\
 
-MORE FROM YULE? CITE YULE?\\
+In fact we have two image stacks: one highlighting the basal membrane of each cell and another highlighting the apical membrane. For the purposes of mesh construction, we chose the basal membrane stack because it more clearly shows the complete outline of each cell.
+Refer to our previous publication \cite{Sneyd2017383} for details of the experimental methods used in the image stack creation process, both basal and apical.\\ 
 
 Note that, to maximize the transparency and reproducibility of our computational work, we favor the use of open-source software tools. Our work-flow combines existing tools (building on the work of others whenever possible) along with software tools and utilities that we developed ourselves when existing tools did not suffice. Our source code files and data can be found on GitHub\footnote{\url{https://github.com/jrugis/cell_mesh.git}}.\\
 
@@ -150,7 +159,7 @@ The output from the CGAL code was a multi-domain triangle surface mesh, as shown
 
 \subsubsection{Surface smoothing}
 
-To reduce the surface area closer to what it should be, we created a constrained surface smoothing process which is the primary contribution of this work. Note that the smoothing process should: 1) minimise the surface area of each cell while 2) maintaining the volume of each cell and 3) keeping the shared conformal faces between cells as being shared.\\
+To reduce the surface area closer to what it should be, we created a constrained surface smoothing process which is the primary contribution of this work. Note that the smoothing process should: 1) minimise the surface area of each cell while 2) maintain the volume of each cell and 3) keep the shared conformal faces between cells as being shared.\\
 
 A pseudo-code outline for our iterative smoothing process is as follows:
 \begin{verbatim}
@@ -233,28 +242,32 @@ In the final step of our process, we filled-in the surface mesh for each cell wi
 
 \section{Results}
 
-SOME SIMULATION RESULTS FROM NATHAN GO HERE.\\
+We tested the meshes by running simulations in which adjacent cells interact with each other\footnote{Note that full simulation results with coupled cells will be reported in a subsequent publication.}. The meshes worked well with our solver, converging for each of the cells at every time step. \\
+
+MORE FROM NATHAN GOES HERE?.\\
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.58\textwidth]{images/2cells_crop.pdf}
+\end{center}
+\caption{Simulation sanpshot of two interacting adjacent cells.}
+\label{fig:two_cells}
+\end{figure}
+
+As an indication of the quality of our results, Figure \ref{fig:two_cells} shows a calcium concentration spike propagating from the apical region (bottom centre of the image) to the basal region (top and left) in two adjacent cells.\\ 
 
 \section{Discussion}
 
-Overall the challenge in this latest work could be described as generating a physically accurate mesh model given incomplete data. The source data image stack was rather indistinct within each image and the spacing between images was rather large. The mesh design was guided by, and constrained by, both the practical requirements of finite element modeling and the simplification assumptions made in our mathematical model. We believe that our smoothing process produced meshes that are arguably organic in appearance.\\ 
+Overall the challenge in this latest work could be described as generating a physically accurate mesh model given incomplete data. As described in Section \ref{DesignConsiderations}, the spacing between source images was relatively large compared to the source image pixel resolution.\\
 
-We did struggle a bit coming to our weighted standard deviation of curvature criterion. There is a fine point not discussed earlier regarding how we calculated surface curvature in Section \ref{sec:termination}. We decided to leave out the curvatures at points along the seams around common faces. These seams are relatively sharp as can be seen in the bottom row of Figure \ref{fig:cell_morph}. The sharp seams gave unrealistically high curvature values. In the real cells these seams are probably not so sharp as can be inferred from the left hand side image in Figure \ref{fig:slice}.\\
+The mesh design was guided by, and constrained by, both the practical requirements of finite element modeling and the simplification assumptions made in our mathematical model. We believe that our smoothing process produced meshes that are arguably organic in appearance.\\ 
 
-In our application, we believe that there is no objective collection of criteria with which to optimally decide precisely when to terminate the iterative smoothing process. However, we do believe that stopping after ten iterations was well justified as described earlier in this paper.\\
+There is a fine point not discussed earlier regarding how we calculated surface curvature in Section \ref{sec:termination}. We decided to leave out the curvatures at points along the seams around common faces. These seams are relatively sharp as can be seen in the bottom row of Figure \ref{fig:cell_morph}. The sharp seams gave unrealistically high curvature values. In the real cells these seams are probably not so sharp as can be inferred from the left hand side image in Figure \ref{fig:slice}.\\
 
-ADDITIONAL DISCUSSION FROM JAMES OR NATHAN?\\
-
-\section{Conclusion and Future Plans}
-
-We have produced physically accurate acinar cell multi-domain conformal meshes for FEM simulation. The functional quality of the meshes has been confirmed by using the meshes in initial simulations with an updated mathematical model that includes interactions between cells.\\
-
-Future plans include multiple parameter sweep simulation runs to fully explore our new coupled cell model.\\
-ANY MORE TO GO HERE?\\
+In our application, we believe that there is no objective collection of criteria with which to optimally decide precisely when to terminate the iterative smoothing process. However, we do believe using nominally ten iterations is well justified as described earlier in this paper.\\
 
 \section{Acknowledgements}
-This work was supported by the National Institutes of Health grant number 5R01DE019245 and by a grant from New Zealand eScience Infrastructure (NeSI).\\
-ANY MORE?\\
+This work was supported by the National Institutes of Health grant number 5R01DE019245 and by the Marsden Fund of the Royal Society of New Zealand. Computational resources and support were provided by the New Zealand eScience Infrastructure (NeSI).\\
 
 \bibliographystyle{alpha}
 \bibliography{references}
